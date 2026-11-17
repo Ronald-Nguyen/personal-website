@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Portfolio backend">
+
+    <featureManager>
+        <feature>servlet-6.0</feature>
+        <feature>restfulWS-3.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>jsonp-2.1</feature>
+        <feature>cdi-4.0</feature>
+        <feature>persistenceContainer-3.1</feature>
+        <feature>jdbc-4.3</feature>
+        <feature>concurrent-3.0</feature>
+        <feature>mpConfig-3.1</feature>
+        <feature>mpHealth-4.0</feature>
+    </featureManager>
+
+    <!-- Defaults; overridden by environment variables of the same name -->
+    <variable name="DB_HOST" defaultValue="localhost"/>
+    <variable name="DB_PORT" defaultValue="5432"/>
+    <variable name="DB_NAME" defaultValue="portfolio"/>
+    <variable name="DB_USER" defaultValue="portfolio"/>
+    <variable name="DB_PASSWORD" defaultValue="portfolio"/>
+    <variable name="HTTP_PORT" defaultValue="9080"/>
+
+    <httpEndpoint id="defaultHttpEndpoint" host="*" httpPort="${HTTP_PORT}" httpsPort="-1"/>
+
+    <library id="postgresLib">
+        <fileset dir="${shared.resource.dir}/jdbc" includes="*.jar"/>
+    </library>
+
+    <dataSource id="portfolioDS" jndiName="jdbc/portfolio">
+        <jdbcDriver libraryRef="postgresLib"/>
+        <properties.postgresql serverName="${DB_HOST}"
+                               portNumber="${DB_PORT}"
+                               databaseName="${DB_NAME}"
+                               user="${DB_USER}"
+                               password="${DB_PASSWORD}"/>
+        <connectionManager maxPoolSize="20" minPoolSize="1" connectionTimeout="10s"/>
+    </dataSource>
+
+    <webApplication location="portfolio.war" contextRoot="/"/>
+
+    <applicationManager autoExpand="true"/>
+    <logging consoleLogLevel="INFO" consoleFormat="SIMPLE"/>
+</server>
