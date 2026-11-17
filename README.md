@@ -2,7 +2,7 @@
 
 Personal portfolio of **Ronald Nguyen** with an integrated **"Ask my CV" assistant**. The assistant uses retrieval-augmented generation (RAG): it answers questions about his background, projects and skills, grounded in his CV and his GitHub repositories, with numbered citations.
 
-- **Frontend:** React 18, TypeScript, Vite and Tailwind CSS, served by Nginx.
+- **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4 and shadcn/ui (Base UI), served by Nginx.
 - **Backend:** Jakarta EE 10 on Java 21 (JAX-RS, CDI, JSON-B, JPA with Hibernate 6), running on Open Liberty.
 - **Database:** PostgreSQL 16 with `pgvector`.
 - **Fully local RAG.** The app needs no external LLM and no API key, and it works on the very first start.
@@ -140,7 +140,7 @@ Run the backend tests with `cd backend && mvn test`. `RagPipelineTest` runs the 
 content/profile.json      CV data (single source of truth)
 db/init.sql               pgvector extension + schema
 backend/                  Jakarta EE 10 / Open Liberty (pom.xml, server.xml, persistence.xml, Java sources)
-frontend/                 React + Vite + Tailwind, nginx.conf
+frontend/                 React + Vite + Tailwind + shadcn/ui, nginx.conf
 docker-compose.yml        db + backend + frontend with healthchecks and a persistent volume
 ```
 

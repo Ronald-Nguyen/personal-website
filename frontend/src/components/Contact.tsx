@@ -1,43 +1,61 @@
-import { profile } from '../profile';
-import { GitHubIcon, LinkedInIcon, MailIcon, MapPinIcon } from './icons';
+import { ArrowUpRightIcon, MailIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { profile } from '@/profile';
+import { GitHubIcon, LinkedInIcon } from './icons';
 import Section from './Section';
 
-export default function Contact() {
-  const items = [
-    { icon: <MailIcon />, label: 'Email', value: profile.email, href: `mailto:${profile.email}`, external: false },
-    { icon: <LinkedInIcon />, label: 'LinkedIn', value: 'in/ronald-nguyen', href: profile.linkedin, external: true },
-    { icon: <GitHubIcon />, label: 'GitHub', value: profile.githubUsername, href: profile.github, external: true },
-  ];
+export function Contact() {
   return (
-    <Section
-      id="contact"
-      eyebrow="Contact"
-      title="Let's talk"
-      intro="Always happy to chat about full-stack development and AI-assisted software engineering."
-    >
-      <div className="grid gap-4 sm:grid-cols-3">
-        {items.map((item) => (
-          <a
-            key={item.label}
-            href={item.href}
-            {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-            className="card group flex items-center gap-4 p-5 transition hover:border-accent-300 dark:hover:border-accent-700"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent-50 text-accent-700 transition group-hover:bg-accent-600 group-hover:text-white dark:bg-accent-900/40 dark:text-accent-300">
-              {item.icon}
-            </span>
-            <span className="min-w-0">
-              <span className="block text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                {item.label}
-              </span>
-              <span className="block truncate font-medium text-slate-900 dark:text-white">{item.value}</span>
-            </span>
-          </a>
-        ))}
-      </div>
-      <p className="mt-6 flex items-center gap-1.5 text-sm text-slate-500 dark:text-slate-400">
-        <MapPinIcon size={16} /> Based in {profile.location}
+    <Section id="contact" title="Contact">
+      <p className="max-w-[34ch] text-2xl leading-snug font-medium tracking-[-0.02em] text-balance">
+        Happy to talk about full-stack work and AI-assisted software engineering.
       </p>
+      <p className="mt-3 max-w-[65ch] leading-relaxed text-muted-foreground">
+        The quickest way to reach me is email:{' '}
+        <a
+          href={`mailto:${profile.email}`}
+          className="rounded-sm font-medium break-all text-foreground underline decoration-border underline-offset-4 hover:decoration-primary"
+        >
+          {profile.email}
+        </a>
+      </p>
+      <div className="mt-6 flex flex-wrap gap-2">
+        <Button size="lg" nativeButton={false} render={<a href={`mailto:${profile.email}`} />}>
+          <MailIcon data-icon="inline-start" />
+          Email me
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          nativeButton={false}
+          render={<a href={profile.linkedin} target="_blank" rel="noopener noreferrer" />}
+        >
+          <LinkedInIcon data-icon="inline-start" />
+          LinkedIn
+          <ArrowUpRightIcon data-icon="inline-end" className="text-muted-foreground" />
+        </Button>
+        <Button
+          size="lg"
+          variant="outline"
+          nativeButton={false}
+          render={<a href={profile.github} target="_blank" rel="noopener noreferrer" />}
+        >
+          <GitHubIcon data-icon="inline-start" />
+          GitHub
+          <ArrowUpRightIcon data-icon="inline-end" className="text-muted-foreground" />
+        </Button>
+      </div>
     </Section>
+  );
+}
+
+export function Footer() {
+  return (
+    <footer className="max-w-[65ch] pb-16 text-[0.8125rem] leading-relaxed text-muted-foreground lg:pb-0">
+      <p>
+        Built with React, Tailwind CSS and shadcn/ui on a Jakarta EE and PostgreSQL backend. Set in Geist.{' '}
+        <span className="tabular-nums">© {new Date().getFullYear()}</span> {profile.name}.
+      </p>
+    </footer>
   );
 }

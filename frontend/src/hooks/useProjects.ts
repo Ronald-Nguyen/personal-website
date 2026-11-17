@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchProjects } from '../api';
-import type { Project } from '../types';
+import { fetchProjects } from '@/api';
+import type { Project } from '@/types';
 
 type State =
   | { status: 'loading' }

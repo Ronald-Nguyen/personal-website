@@ -1,33 +1,42 @@
-import Header from './components/Header';
-import Hero from './components/Hero';
-import About from './components/About';
-import Experience from './components/Experience';
-import Education from './components/Education';
-import Skills from './components/Skills';
+import { useEffect } from 'react';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import AskCv from './components/AskCv';
+import { Contact, Footer } from './components/Contact';
+import { About, Education, Experience, Skills } from './components/CvSections';
 import Projects from './components/Projects';
-import ChatSection from './components/ChatSection';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
+import Sidebar from './components/Sidebar';
 
 export default function App() {
+  // The browser tries the initial #hash jump before React has rendered the sections.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    if (id) document.getElementById(id)?.scrollIntoView();
+  }, []);
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <TooltipProvider delay={250}>
+      <a
+        href="#main"
+        className="sr-only z-50 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+      >
+        Skip to content
+      </a>
       <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[36rem] bg-gradient-to-b from-accent-100/70 via-transparent to-transparent dark:from-accent-900/30"
-      />
-      <Header />
-      <main>
-        <Hero />
-        <About />
-        <Experience />
-        <Education />
-        <Skills />
-        <Projects />
-        <ChatSection />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+        id="top"
+        className="mx-auto min-h-screen max-w-6xl px-6 sm:px-10 lg:flex lg:justify-between lg:gap-12 lg:px-12"
+      >
+        <Sidebar />
+        <main id="main" tabIndex={-1} className="pt-6 outline-none lg:w-[54%] lg:py-24">
+          <AskCv />
+          <About />
+          <Experience />
+          <Education />
+          <Skills />
+          <Projects />
+          <Contact />
+          <Footer />
+        </main>
+      </div>
+    </TooltipProvider>
   );
 }

@@ -1,131 +1,18 @@
-import type { ReactNode, SVGProps } from 'react';
+import type { SVGProps } from 'react';
 
-type IconProps = SVGProps<SVGSVGElement> & { size?: number };
-
-function base({ size = 20, ...props }: IconProps) {
-  return {
-    width: size,
-    height: size,
-    'aria-hidden': true,
-    focusable: false,
-    ...props,
-  } as const;
-}
-
-export function GitHubIcon(props: IconProps) {
+// Brand marks are not part of lucide; drawn here at the same 24px grid.
+export function GitHubIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...base(props)}>
-      <path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.39-5.26 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
     </svg>
   );
 }
 
-export function LinkedInIcon(props: IconProps) {
+export function LinkedInIcon(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...base(props)}>
-      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z" />
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false" {...props}>
+      <path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z" />
     </svg>
   );
 }
-
-function Stroke({ children, ...props }: IconProps & { children: ReactNode }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...base(props)}
-    >
-      {children}
-    </svg>
-  );
-}
-
-export const MailIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <rect x="3" y="5" width="18" height="14" rx="2" />
-    <path d="m3 7 9 6 9-6" />
-  </Stroke>
-);
-
-export const SunIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-  </Stroke>
-);
-
-export const MoonIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-  </Stroke>
-);
-
-export const MenuIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M4 6h16M4 12h16M4 18h16" />
-  </Stroke>
-);
-
-export const CloseIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M18 6 6 18M6 6l12 12" />
-  </Stroke>
-);
-
-export const MapPinIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M12 21s-7-5.5-7-11a7 7 0 1 1 14 0c0 5.5-7 11-7 11Z" />
-    <circle cx="12" cy="10" r="2.5" />
-  </Stroke>
-);
-
-export const StarIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3Z" />
-  </Stroke>
-);
-
-export const ForkIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <circle cx="6" cy="5" r="2" />
-    <circle cx="18" cy="5" r="2" />
-    <circle cx="12" cy="19" r="2" />
-    <path d="M6 7v1a4 4 0 0 0 4 4h4a4 4 0 0 0 4-4V7M12 12v5" />
-  </Stroke>
-);
-
-export const ExternalIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M14 4h6v6M20 4 10 14M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
-  </Stroke>
-);
-
-export const SendIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" />
-  </Stroke>
-);
-
-export const SparkIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5" />
-  </Stroke>
-);
-
-export const GradIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <path d="m2 9 10-5 10 5-10 5L2 9Z" />
-    <path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5M22 9v6" />
-  </Stroke>
-);
-
-export const BriefcaseIcon = (p: IconProps) => (
-  <Stroke {...p}>
-    <rect x="3" y="7" width="18" height="13" rx="2" />
-    <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18" />
-  </Stroke>
-);

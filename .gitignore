@@ -6,3 +6,5 @@ target/
 *.log
 .idea/
 .vscode/
+DESIGN.md
+PRODUCT.md

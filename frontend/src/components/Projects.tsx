@@ -1,85 +1,188 @@
-import { useProjects } from '../hooks/useProjects';
-import { profile } from '../profile';
-import { GitHubIcon } from './icons';
-import ProjectCard from './ProjectCard';
+import { ArrowUpRightIcon, FolderGit2Icon, GitForkIcon, RefreshCwIcon, StarIcon, TriangleAlertIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useProjects } from '@/hooks/useProjects';
+import { formatMonthYear } from '@/lib/format';
+import { profile } from '@/profile';
+import type { Project } from '@/types';
+import { languageColor } from './languageColors';
 import Section from './Section';
 
-function Skeleton() {
+function ProjectRow({ project }: { project: Project }) {
+  const updated = formatMonthYear(project.pushedAt);
+
   return (
-    <div className="card animate-pulse p-5" aria-hidden>
-      <div className="h-4 w-1/2 rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="mt-4 h-3 w-full rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="mt-2 h-3 w-5/6 rounded bg-slate-200 dark:bg-slate-800" />
-      <div className="mt-6 h-3 w-1/3 rounded bg-slate-200 dark:bg-slate-800" />
+    <li className="group relative -mx-4 rounded-xl px-4 py-4 transition-colors hover:bg-muted/70 has-[a:focus-visible]:bg-muted/70">
+      <h3 className="font-medium leading-6">
+        <a
+          href={project.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-baseline gap-1 rounded-sm outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-2 focus-visible:after:ring-ring group-hover:text-primary"
+        >
+          <span className="break-all">{project.name}</span>
+          <ArrowUpRightIcon
+            aria-hidden="true"
+            className="size-4 shrink-0 translate-y-0.5 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0"
+          />
+          <span className="sr-only">(opens GitHub)</span>
+        </a>
+      </h3>
+
+      <p className="mt-1 max-w-[65ch] text-[0.9375rem] leading-relaxed text-muted-foreground">
+        {project.description || 'No description on GitHub yet.'}
+      </p>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[0.8125rem] text-muted-foreground">
+        {project.language && (
+          <span className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2.5 rounded-full"
+              style={{ backgroundColor: languageColor(project.language) }}
+            />
+            {project.language}
+          </span>
+        )}
+        {project.stars > 0 && (
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <StarIcon aria-hidden="true" className="size-3.5" />
+            {project.stars}
+            <span className="sr-only">{project.stars === 1 ? 'star' : 'stars'}</span>
+          </span>
+        )}
+        {project.forks > 0 && (
+          <span className="inline-flex items-center gap-1 tabular-nums">
+            <GitForkIcon aria-hidden="true" className="size-3.5" />
+            {project.forks}
+            <span className="sr-only">{project.forks === 1 ? 'fork' : 'forks'}</span>
+          </span>
+        )}
+        {project.fork && <span>Fork</span>}
+        {updated && <span>Updated {updated}</span>}
+        {project.homepage && (
+          <a
+            href={project.homepage}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 inline-flex items-center gap-0.5 rounded-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Live demo
+            <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+          </a>
+        )}
+      </div>
+
+      {project.topics.length > 0 && (
+        <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Topics">
+          {project.topics.slice(0, 6).map((topic) => (
+            <li key={topic}>
+              <Badge variant="secondary">{topic}</Badge>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+function LoadingRows() {
+  return (
+    <div role="status" aria-label="Loading projects" className="flex flex-col gap-8 py-4">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="flex flex-col gap-2.5">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-4 w-full max-w-md" />
+          <Skeleton className="h-4 w-2/3 max-w-sm" />
+        </div>
+      ))}
     </div>
   );
 }
 
 export default function Projects() {
   const { state, retry } = useProjects();
+  const githubRepos = `${profile.github}?tab=repositories`;
 
   return (
-    <Section
-      id="projects"
-      eyebrow="Projects"
-      title="Open-source projects"
-      intro={
-        <>
-          Pulled live from my{' '}
-          <a className="font-medium text-accent-600 hover:underline dark:text-accent-400" href={profile.github} target="_blank" rel="noopener noreferrer">
-            GitHub profile
-          </a>{' '}
-          and indexed into the CV assistant below.
-        </>
-      }
-    >
-      {state.status === 'loading' && (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" role="status" aria-label="Loading projects">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} />
-          ))}
-        </div>
-      )}
+    <Section id="projects" title="Projects">
+      <p className="mb-4 max-w-[65ch] leading-relaxed text-muted-foreground">
+        Recently updated repositories, loaded live from GitHub. Their READMEs are also indexed into the assistant, so you
+        can ask about any of them.
+      </p>
+
+      {state.status === 'loading' && <LoadingRows />}
 
       {state.status === 'error' && (
-        <div className="card flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center sm:justify-between" role="alert">
-          <div>
-            <p className="font-semibold text-slate-900 dark:text-white">Projects couldn't be loaded right now.</p>
-            <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{state.message}</p>
-          </div>
-          <div className="flex gap-3">
-            <button type="button" className="btn-secondary" onClick={retry}>
-              Try again
-            </button>
-            <a className="btn-primary" href={profile.github} target="_blank" rel="noopener noreferrer">
-              <GitHubIcon size={16} /> Open GitHub
-            </a>
-          </div>
-        </div>
+        <Alert className="mt-6">
+          <TriangleAlertIcon />
+          <AlertTitle>Projects couldn't be loaded</AlertTitle>
+          <AlertDescription>
+            <p>The list of repositories didn't load. Try again, or browse them on GitHub.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={retry}>
+                <RefreshCwIcon data-icon="inline-start" />
+                Try again
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<a href={githubRepos} target="_blank" rel="noopener noreferrer" />}
+              >
+                Open GitHub
+                <ArrowUpRightIcon data-icon="inline-end" />
+              </Button>
+            </div>
+          </AlertDescription>
+        </Alert>
       )}
 
       {state.status === 'success' && state.projects.length === 0 && (
-        <div className="card p-6 text-sm text-slate-600 dark:text-slate-400">
-          No public repositories to show yet — have a look at{' '}
-          <a className="font-medium text-accent-600 hover:underline dark:text-accent-400" href={profile.github}>
-            GitHub
-          </a>
-          .
-        </div>
+        <Empty className="mt-6 border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FolderGit2Icon />
+            </EmptyMedia>
+            <EmptyTitle>No public repositories yet</EmptyTitle>
+            <EmptyDescription>New work shows up here as soon as it's pushed to GitHub.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<a href={profile.github} target="_blank" rel="noopener noreferrer" />}
+            >
+              Open GitHub profile
+              <ArrowUpRightIcon data-icon="inline-end" />
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
 
       {state.status === 'success' && state.projects.length > 0 && (
         <>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="flex flex-col gap-2">
             {state.projects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectRow key={project.id} project={project} />
             ))}
-          </div>
-          <div className="mt-8">
-            <a className="btn-secondary" href={`${profile.github}?tab=repositories`} target="_blank" rel="noopener noreferrer">
-              <GitHubIcon size={16} /> All repositories
-            </a>
-          </div>
+          </ul>
+          <a
+            href={githubRepos}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mt-6 inline-flex items-center gap-1 rounded-sm font-medium underline-offset-4 hover:text-primary hover:underline"
+          >
+            View all repositories on GitHub
+            <ArrowUpRightIcon
+              aria-hidden="true"
+              className="size-4 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            />
+          </a>
         </>
       )}
     </Section>
