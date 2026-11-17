@@ -45,7 +45,6 @@ export interface Profile {
   githubUsername: string;
   linkedin: string;
   about: string;
-  availability: string;
   education: EducationEntry[];
   experience: ExperienceEntry[];
   skills: SkillGroup[];

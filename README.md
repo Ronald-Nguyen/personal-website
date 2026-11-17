@@ -53,7 +53,7 @@ The first build takes a few minutes, because Maven, npm and the Liberty features
 ### How the RAG pipeline works (no LLM key required)
 
 1. **Knowledge base.**
-   - `content/profile.json` is turned into self-contained prose chunks: one per job, degree, thesis and skill category, plus about, availability, languages and contact.
+   - `content/profile.json` is turned into self-contained prose chunks: one per job, degree, thesis and skill category, plus about, languages and contact.
    - GitHub repositories add a summary chunk each (description, language, topics, stars) plus up to 4 cleaned README chunks.
    - Chunks are upserted by content hash, and chunks that no longer exist are deleted.
 2. **Embeddings.**
@@ -62,7 +62,7 @@ The first build takes a few minutes, because Maven, npm and the Liberty features
    - Every vocabulary term gets its own dimension, so there are no hash collisions. Vectors are L2-normalised and stored in the `vector` column.
    - When the corpus changes, all chunks are re-embedded, which takes milliseconds.
 3. **Retrieval.**
-   - The question is tokenized and expanded with related terms. For example, *available* expands to *availability, April 2027* and *thesis* to *Bachelorarbeit*.
+   - The question is tokenized and expanded with related terms. For example, *thesis* expands to *Bachelorarbeit* and *C#* to *.NET, ASP.NET*.
    - pgvector then ranks chunks by cosine distance: `ORDER BY embedding <=> CAST(? AS vector)`.
 4. **Grounded answer.**
    - The most relevant sentences of the top chunks are extracted, grouped per source and tagged with `[n]` citations.

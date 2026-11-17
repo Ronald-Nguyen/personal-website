@@ -91,14 +91,6 @@ class RagPipelineTest {
     }
 
     @Test
-    void availability() {
-        AnswerComposer.Answer a = ask("When is he available for a Master's thesis?");
-        assertTrue(a.found());
-        assertEquals("cv:availability", topKey(a));
-        assertTrue(a.text().contains("April 2027"));
-    }
-
-    @Test
     void programmingLanguages() {
         AnswerComposer.Answer a = ask("Which programming languages does he know?");
         assertTrue(a.found());

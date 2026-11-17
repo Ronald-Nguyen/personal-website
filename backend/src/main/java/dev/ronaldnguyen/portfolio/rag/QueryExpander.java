@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Adds related terms to a query so that, for example, "When can he start?"
- * still finds the availability chunk. Expanded terms get a lower weight than
+ * Adds related terms to a query so that, for example, "Does he know .NET?"
+ * still finds the C# chunks. Expanded terms get a lower weight than
  * the words the visitor actually typed.
  */
 public final class QueryExpander {
@@ -21,12 +21,7 @@ public final class QueryExpander {
         RAW.put("bachelorarbeit", "bachelor thesis");
         RAW.put("masterarbeit", "master thesis");
         RAW.put("abschlussarbeit", "thesis bachelor master");
-        RAW.put("available", "availability opportunity starting april 2027");
-        RAW.put("availability", "available opportunity starting april 2027");
-        RAW.put("start", "starting availability april 2027");
-        RAW.put("starting", "start availability april 2027");
-        RAW.put("verfügbar", "availability opportunity starting april 2027");
-        RAW.put("hire", "availability opportunity contact");
+        RAW.put("hire", "contact email linkedin");
         RAW.put("fullstack", "frontend backend web application angular aspnet");
         RAW.put("frontend", "angular react tailwind ngrx typescript");
         RAW.put("backend", "aspnet jakarta java sql server");

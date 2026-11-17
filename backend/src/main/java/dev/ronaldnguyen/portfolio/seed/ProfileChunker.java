@@ -11,8 +11,7 @@ import java.util.Locale;
 
 /**
  * Turns the structured CV into self-contained prose chunks: one per job,
- * degree, thesis, skill category, plus about / availability / languages /
- * contact. Each chunk starts with a sentence that names its context, so an
+ * degree, thesis, skill category, plus about / languages / contact. Each chunk starts with a sentence that names its context, so an
  * extracted sentence still makes sense on its own.
  */
 public final class ProfileChunker {
@@ -30,10 +29,6 @@ public final class ProfileChunker {
         drafts.add(cv("cv:about", "About", "About " + name, linkedin,
                 name + " is a " + p.getString("headline") + " based in " + p.getString("location") + ". "
                         + p.getString("about")));
-
-        drafts.add(cv("cv:availability", "Availability", "Availability & Master's thesis", null,
-                p.getString("availability") + " Interested companies can contact him by email at "
-                        + p.getString("email") + "."));
 
         drafts.add(cv("cv:contact", "Contact", "Contact & Links", p.getString("github"),
                 "You can contact Ronald by email at " + p.getString("email") + ". "

@@ -161,7 +161,7 @@ public final class AnswerComposer {
 
     private static Answer notFound(String contactEmail) {
         return new Answer("I couldn't find anything about that in Ronald's CV or GitHub projects. "
-                + "Try asking about his education, work experience, skills, projects or availability"
+                + "Try asking about his education, work experience, skills or projects"
                 + " — or contact him directly at " + contactEmail + ".", List.of(), false);
     }
 }

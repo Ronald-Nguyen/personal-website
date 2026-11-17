@@ -13,7 +13,7 @@ export default function Contact() {
       id="contact"
       eyebrow="Contact"
       title="Let's talk"
-      intro="I'm looking for a Master's thesis opportunity starting April 2027 — and always happy to chat about full-stack development and AI-assisted software engineering."
+      intro="Always happy to chat about full-stack development and AI-assisted software engineering."
     >
       <div className="grid gap-4 sm:grid-cols-3">
         {items.map((item) => (

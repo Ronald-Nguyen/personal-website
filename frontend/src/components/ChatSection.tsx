@@ -7,7 +7,7 @@ import Section from './Section';
 const SAMPLE_QUESTIONS = [
   "What was Ronald's Bachelor thesis about?",
   'Does he have experience with C# and full-stack development?',
-  "When is he available for a Master's thesis?",
+  "Where does he currently work?",
   'Which programming languages does he know?',
 ];
 

@@ -5,7 +5,7 @@ const HIGHLIGHTS = [
   { label: 'Focus', value: 'AI-assisted software engineering' },
   { label: 'Builds', value: 'Full-stack enterprise apps' },
   { label: 'Research', value: 'LLM evaluation pipelines' },
-  { label: 'Available', value: 'Master’s thesis · April 2027' },
+  { label: 'Studying', value: 'M.Sc. Applied CS · Erfurt' },
 ];
 
 export default function About() {
