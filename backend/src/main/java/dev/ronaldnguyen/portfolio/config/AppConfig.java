@@ -46,6 +46,17 @@ public class AppConfig {
         return Math.max(1, Math.min(100, integer("GITHUB_REPO_LIMIT", 10)));
     }
 
+    /**
+     * Repository names (case-insensitive) never shown or indexed. Defaults to the
+     * profile README repository, which is named like the user.
+     */
+    public List<String> githubExcludedRepos() {
+        return Arrays.stream(string("GITHUB_EXCLUDE_REPOS", githubUsername()).split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
     public int githubRefreshHours() {
         return Math.max(1, integer("GITHUB_REFRESH_HOURS", 6));
     }

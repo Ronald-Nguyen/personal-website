@@ -112,6 +112,7 @@ curl -X POST http://localhost:3000/api/chat \
 | `GITHUB_USERNAME` | `Ronald-Nguyen` | Whose repositories to show |
 | `GITHUB_TOKEN` | *(empty)* | Optional token; raises the GitHub rate limit (60 → 5000 req/h) |
 | `GITHUB_REPO_LIMIT` | `10` | Number of repositories fetched |
+| `GITHUB_EXCLUDE_REPOS` | `Ronald-Nguyen` | Comma-separated repository names that are never shown or indexed |
 | `GITHUB_REFRESH_HOURS` | `6` | Refresh interval |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origins allowed to call the API directly |
 | `CHAT_RATE_LIMIT_PER_MINUTE` | `10` | Chat requests per client per minute |

@@ -130,10 +130,11 @@ public class GithubService {
         }
 
         Instant now = Instant.now();
+        List<String> excluded = config.githubExcludedRepos();
         List<GithubRepo> result = new ArrayList<>();
         for (JsonValue value : array) {
             JsonObject json = value.asJsonObject();
-            if (!include(json)) {
+            if (isExcluded(json, excluded) || !include(json)) {
                 continue;
             }
             GithubRepo repo = new GithubRepo();
@@ -164,6 +165,11 @@ public class GithubService {
         lastSuccess = now;
         lastError = null;
         LOG.info(() -> "GitHub sync done: " + result.size() + " repositories" + (changed ? ", knowledge base updated" : ""));
+    }
+
+    static boolean isExcluded(JsonObject json, List<String> excluded) {
+        String name = json.getString("name", "");
+        return excluded.stream().anyMatch(name::equalsIgnoreCase);
     }
 
     /** Non-forks always; forks only with notable stars or own commits after forking. */
