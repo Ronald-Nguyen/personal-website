@@ -2,6 +2,10 @@ export interface Thesis {
   title: string;
   titleOriginal: string;
   grade: string;
+  /** Full text (PDF) */
+  url?: string;
+  /** Official listing, e.g. the chair's page of completed theses */
+  listingUrl?: string;
 }
 
 export interface EducationEntry {

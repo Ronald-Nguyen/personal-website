@@ -1,3 +1,4 @@
+import { ArrowUpRightIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatPeriod } from '@/lib/format';
 import { profile } from '@/profile';
@@ -91,6 +92,32 @@ export function Education() {
                   <p lang="de" className="mt-1.5 text-sm leading-snug text-muted-foreground italic">
                     {edu.thesis.titleOriginal}
                   </p>
+                  {(edu.thesis.url || edu.thesis.listingUrl) && (
+                    <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                      {edu.thesis.url && (
+                        <a
+                          href={edu.thesis.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-0.5 rounded-sm font-medium text-primary underline-offset-4 hover:underline"
+                        >
+                          Read the full thesis (PDF)
+                          <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+                        </a>
+                      )}
+                      {edu.thesis.listingUrl && (
+                        <a
+                          href={edu.thesis.listingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-0.5 rounded-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                        >
+                          Published by the Software Engineering chair, University of Rostock
+                          <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+                        </a>
+                      )}
+                    </p>
+                  )}
                 </figure>
               )}
             </div>
