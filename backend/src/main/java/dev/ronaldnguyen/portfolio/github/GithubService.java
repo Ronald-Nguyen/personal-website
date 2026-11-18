@@ -32,6 +32,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -131,6 +133,7 @@ public class GithubService {
 
         Instant now = Instant.now();
         List<String> excluded = config.githubExcludedRepos();
+        Map<String, String> demoOverrides = config.githubDemoOverrides();
         List<GithubRepo> result = new ArrayList<>();
         for (JsonValue value : array) {
             JsonObject json = value.asJsonObject();
@@ -143,7 +146,8 @@ public class GithubService {
             repo.setFullName(json.getString("full_name"));
             repo.setDescription(json.getString("description", null));
             repo.setHtmlUrl(json.getString("html_url"));
-            repo.setHomepage(emptyToNull(json.getString("homepage", null)));
+            repo.setHomepage(demoOverrides.getOrDefault(repo.getName().toLowerCase(Locale.ROOT),
+                    emptyToNull(json.getString("homepage", null))));
             repo.setLanguage(json.getString("language", null));
             repo.setStars(json.getInt("stargazers_count", 0));
             repo.setForks(json.getInt("forks_count", 0));

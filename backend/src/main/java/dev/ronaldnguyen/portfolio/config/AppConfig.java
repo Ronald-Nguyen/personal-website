@@ -2,7 +2,10 @@ package dev.ronaldnguyen.portfolio.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -55,6 +58,21 @@ public class AppConfig {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
+    }
+
+    /**
+     * Live demo links that replace a repository's GitHub homepage, as
+     * {@code name=url} pairs (comma-separated). Used for demos hosted on this site.
+     */
+    public Map<String, String> githubDemoOverrides() {
+        Map<String, String> overrides = new LinkedHashMap<>();
+        for (String entry : string("GITHUB_DEMO_OVERRIDES", "Pokedex-Angular=/demos/pokedex/").split(",")) {
+            int eq = entry.indexOf('=');
+            if (eq > 0 && eq < entry.length() - 1) {
+                overrides.put(entry.substring(0, eq).trim().toLowerCase(Locale.ROOT), entry.substring(eq + 1).trim());
+            }
+        }
+        return overrides;
     }
 
     public int githubRefreshHours() {
