@@ -27,9 +27,9 @@ import java.util.stream.Collectors;
 public class LlmService {
 
     private static final Logger LOG = Logger.getLogger(LlmService.class.getName());
-    private static final int MAX_TOKENS = 350;
+    private static final int MAX_TOKENS = 500;
     private static final double TEMPERATURE = 0.2;
-    private static final int MAX_CONCURRENT = 2;
+    private static final int MAX_CONCURRENT = 3;
     private static final int CACHE_SIZE = 500;
     private static final long CACHE_TTL_MS = Duration.ofHours(6).toMillis();
     private static final long PAUSE_RATE_LIMITED_MS = Duration.ofSeconds(60).toMillis();
@@ -40,6 +40,7 @@ public class LlmService {
     AppConfig config;
 
     private MistralClient client;
+    private List<String> models = List.of();
     private LlmBudget budget;
     private final Semaphore inFlight = new Semaphore(MAX_CONCURRENT);
     private final Map<String, CachedAnswer> cache = new LinkedHashMap<>(64, 0.75f, true) {
@@ -62,9 +63,13 @@ public class LlmService {
             return;
         }
         try {
-            client = new MistralClient(config.mistralApiBase(), key.get(), config.mistralModel(),
-                    Duration.ofSeconds(15));
-            LOG.info("LLM answers enabled with model " + config.mistralModel());
+            models = config.mistralModels();
+            if (models.isEmpty()) {
+                LOG.warning("LLM disabled: MISTRAL_MODELS is empty.");
+                return;
+            }
+            client = new MistralClient(config.mistralApiBase(), key.get(), Duration.ofSeconds(15));
+            LOG.info("LLM answers enabled with models " + models);
         } catch (IllegalArgumentException e) {
             LOG.warning("LLM disabled: " + e.getMessage());
         }
@@ -74,64 +79,101 @@ public class LlmService {
         return client != null;
     }
 
-    public Optional<String> model() {
-        return Optional.ofNullable(client).map(MistralClient::model);
+    public List<String> models() {
+        return models;
     }
 
-    public LlmBudget budget() {
-        return budget;
+    public boolean paused() {
+        return budget.paused(models);
     }
 
-    /** A grounded answer citing {@code sources} as [1]..[n], or empty to keep the extractive one. */
-    public Optional<String> answer(String question, List<ScoredChunk> sources, String clientId,
+    /**
+     * Outcome of {@link #answer}: {@code text} is empty when no usable answer came
+     * back; {@code limited} says that was because of a usage limit or outage
+     * (so the visitor can be told to retry), not because the answer was rejected.
+     */
+    public record Result(Optional<String> text, boolean limited) {
+        static Result of(String text) {
+            return new Result(Optional.of(text), false);
+        }
+
+        static Result none(boolean limited) {
+            return new Result(Optional.empty(), limited);
+        }
+    }
+
+    /**
+     * An answer grounded in {@code sources}, citing them as [1]..[n] (indexes into
+     * the list).
+     */
+    public Result answer(String question, List<ScoredChunk> sources, String clientId,
                                    String contactEmail) {
         if (client == null || sources.isEmpty()) {
-            return Optional.empty();
+            return Result.none(false);
         }
         String cacheKey = cacheKey(question, sources);
         Optional<String> cached = fromCache(cacheKey);
         if (cached.isPresent()) {
-            return cached;
+            return Result.of(cached.get());
         }
         if (!inFlight.tryAcquire()) {
-            return Optional.empty();
+            return Result.none(true);
         }
+        List<MistralClient.Message> messages = List.of(
+                new MistralClient.Message("system", PromptBuilder.systemPrompt(contactEmail)),
+                new MistralClient.Message("user", PromptBuilder.userPrompt(question, sources)));
         try {
-            if (!budget.tryAcquire(clientId)) {
-                return Optional.empty();
+            // A model that is rate limited upstream is paused and the next one tried;
+            // the budget bounds the attempts (each one counts against every limit).
+            for (int attempt = 0; attempt < models.size(); attempt++) {
+                Optional<String> model = budget.tryAcquire(clientId, models);
+                if (model.isEmpty()) {
+                    return Result.none(true);
+                }
+                try {
+                    MistralClient.Completion completion = client.complete(model.get(), messages,
+                            MAX_TOKENS, TEMPERATURE);
+                    budget.recordTokens(completion.totalTokens());
+                    Optional<String> text = PromptBuilder.sanitize(completion.text(), sources.size(),
+                            allowedUrls(sources));
+                    if (text.isEmpty()) {
+                        LOG.info("LLM answer rejected by validation; using extractive answer.");
+                    }
+                    text.ifPresent(t -> putCache(cacheKey, t));
+                    return new Result(text, false);
+                } catch (MistralClient.LlmException e) {
+                    if (!handleFailure(model.get(), e)) {
+                        return Result.none(true);
+                    }
+                }
             }
-            MistralClient.Completion completion = client.complete(List.of(
-                    new MistralClient.Message("system", PromptBuilder.systemPrompt(contactEmail)),
-                    new MistralClient.Message("user", PromptBuilder.userPrompt(question, sources))),
-                    MAX_TOKENS, TEMPERATURE);
-            budget.recordTokens(completion.totalTokens());
-            Optional<String> text = PromptBuilder.sanitize(completion.text(), sources.size(),
-                    allowedUrls(sources));
-            if (text.isEmpty()) {
-                LOG.info("LLM answer rejected by validation; using extractive answer.");
-            }
-            text.ifPresent(t -> putCache(cacheKey, t));
-            return text;
-        } catch (MistralClient.LlmException e) {
-            handleFailure(e);
-            return Optional.empty();
+            return Result.none(true);
         } finally {
             inFlight.release();
         }
     }
 
-    private void handleFailure(MistralClient.LlmException e) {
+    /** Pauses what failed; true when another model may still be tried. */
+    private boolean handleFailure(String model, MistralClient.LlmException e) {
         int status = e.status();
-        if (status == 401 || status == 403) {
+        if (status == 401) {
             budget.pause(PAUSE_AUTH_ERROR_MS);
-            LOG.severe("Mistral rejected the API key or model (HTTP " + status + "); LLM paused for 1 hour.");
-        } else if (status == 429) {
-            budget.pause(Math.max(PAUSE_RATE_LIMITED_MS, e.retryAfterSeconds() * 1000));
-            LOG.warning("Mistral rate limit reached; LLM paused.");
-        } else {
-            budget.pause(PAUSE_SERVER_ERROR_MS);
-            LOG.warning(e.getMessage() + "; LLM paused for 2 minutes.");
+            LOG.severe("Mistral rejected the API key (HTTP 401); LLM paused for 1 hour.");
+            return false;
         }
+        if (status == 403) {
+            budget.pauseModel(model, PAUSE_AUTH_ERROR_MS);
+            LOG.warning("Model " + model + " not available in this plan (HTTP 403); skipped for 1 hour.");
+            return true;
+        }
+        if (status == 429) {
+            budget.pauseModel(model, Math.max(PAUSE_RATE_LIMITED_MS, e.retryAfterSeconds() * 1000));
+            LOG.info("Model " + model + " rate limited; trying the next one.");
+            return true;
+        }
+        budget.pauseModel(model, PAUSE_SERVER_ERROR_MS);
+        LOG.warning(e.getMessage() + " (" + model + "); model paused for 2 minutes.");
+        return false;
     }
 
     private static String cacheKey(String question, List<ScoredChunk> sources) {

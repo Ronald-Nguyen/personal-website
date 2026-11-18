@@ -5,14 +5,14 @@ Personal portfolio with an integrated **"Ask my CV" assistant**. The assistant u
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4 and shadcn/ui (Base UI), served by Nginx.
 - **Backend:** Jakarta EE 10 on Java 21 (JAX-RS, CDI, JSON-B, JPA with Hibernate 6), running on Open Liberty.
 - **Database:** PostgreSQL 16 with `pgvector`.
-- **Fully local RAG.** The app needs no external LLM and no API key, and it works on the very first start.
+- **LLM:** Mistral (`ministral-14b`, falling back to `ministral-8b` and `ministral-3b`) writes the answers. It receives the complete CV, all project summaries and the README passages that local retrieval ranks highest, and must cite them. Without a `MISTRAL_API_KEY`, or when the usage limits are reached, the assistant falls back to a fully local extractive answer.
 
 ## Quick start
 
 Requirements: Docker with Docker Compose v2.
 
 ```bash
-cp .env.example .env        # optional – every value has a working default
+echo "MISTRAL_API_KEY=your-key" > .env   # optional – without it, answers are extractive
 docker compose up --build
 ```
 
@@ -37,7 +37,7 @@ The first build takes a few minutes, because Maven, npm and the Liberty features
                ├── /          static React build
                └── /api/*  ──► backend (Open Liberty :9080)
                                  ├── GET  /api/projects   GitHub repos (cached in Postgres, refreshed every 6h)
-                                 ├── POST /api/chat       RAG: tokenize → expand → pgvector search → grounded answer
+                                 ├── POST /api/chat       RAG: pgvector search → context → Mistral answer with citations
                                  ├── GET  /api/profile    structured CV (content/profile.json)
                                  ├── GET  /api/status
                                  └── /health/{live,ready}
@@ -50,7 +50,7 @@ The first build takes a few minutes, because Maven, npm and the Liberty features
                      api.github.com ────┘  (users/Ronald-Nguyen/repos?sort=updated&per_page=10)
 ```
 
-### How the RAG pipeline works (no LLM key required)
+### How the RAG pipeline works
 
 1. **Knowledge base.**
    - `content/profile.json` is turned into self-contained prose chunks: one per job, degree, thesis and skill category, plus about, languages and contact.
@@ -64,10 +64,19 @@ The first build takes a few minutes, because Maven, npm and the Liberty features
 3. **Retrieval.**
    - The question is tokenized and expanded with related terms. For example, *thesis* expands to *Bachelorarbeit* and *C#* to *.NET, ASP.NET*.
    - pgvector then ranks chunks by cosine distance: `ORDER BY embedding <=> CAST(? AS vector)`.
-4. **Grounded answer.**
+4. **Generated answer (Mistral).**
+   - Every question is sent to Mistral together with the whole CV, all project summaries and up to 5 matching README passages, as numbered sources.
+   - The model may combine, summarise and calculate, but only from the sources, and must cite them as `[n]`. Off-topic requests (code, essays, …) are declined.
+   - The answer is validated server-side: foreign links and Markdown are stripped, long answers without citations are rejected, and citations are renumbered to the sources actually used.
+5. **Fallback (no LLM).**
    - The most relevant sentences of the top chunks are extracted, grouped per source and tagged with `[n]` citations.
-   - CV chunks get a slight preference, and at most 2 chunks are taken per source.
-   - If nothing relevant matches, the assistant says so and points to the contact details. It never invents facts.
+   - The response then carries a `notice` explaining why the AI did not answer.
+
+### Abuse protection
+
+- The API key lives only in `.env` (ignored by Git and Docker) and is never sent to the browser or logged.
+- Server-side limits: calls per minute per model, calls and tokens per day, calls per visitor per hour, at most 3 concurrent calls; identical questions are cached for 6 hours.
+- The backend port is bound to `127.0.0.1`, so visitor IPs (`X-Forwarded-For`) can only come from the Nginx proxy.
 
 ## API
 
@@ -81,6 +90,8 @@ curl -X POST http://localhost:3000/api/chat \
 {
   "answer": "Here's what I found in Ronald's CV and GitHub projects:\n\n… [1]\n\n… [2]",
   "found": true,
+  "generated": true,
+  "notice": null,
   "sources": [
     { "index": 1, "section": "Education", "title": "Bachelor's Thesis", "snippet": "…", "score": 0.27 }
   ]
@@ -89,7 +100,7 @@ curl -X POST http://localhost:3000/api/chat \
 
 - `GET /api/projects` returns `[{ id, name, description, url, homepage, language, stars, forks, topics, fork, pushedAt }]`. Fields that are `null` are omitted.
 - Errors are always JSON: `{ "status": 400, "error": "…" }`.
-- Questions are limited to 500 characters. The chat is rate-limited per client (`CHAT_RATE_LIMIT_PER_MINUTE`, default 20).
+- Questions are limited to 500 characters. The chat is rate-limited per client (`CHAT_RATE_LIMIT_PER_MINUTE`, default 10).
 
 **Which repositories are shown:** the 10 most recently updated public repos. A fork is only included if it has at least 3 stars, or has commits pushed more than a day after it was forked.
 
@@ -103,7 +114,12 @@ curl -X POST http://localhost:3000/api/chat \
 | `GITHUB_REPO_LIMIT` | `10` | Number of repositories fetched |
 | `GITHUB_REFRESH_HOURS` | `6` | Refresh interval |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` | Origins allowed to call the API directly |
-| `CHAT_RATE_LIMIT_PER_MINUTE` | `20` | Chat requests per client per minute |
+| `CHAT_RATE_LIMIT_PER_MINUTE` | `10` | Chat requests per client per minute |
+| `MISTRAL_API_KEY` | *(empty)* | Enables LLM answers; never commit it |
+| `MISTRAL_MODELS` | `ministral-14b-latest,ministral-8b-latest,ministral-3b-latest` | Models in order of preference |
+| `LLM_REQUESTS_PER_MINUTE` | `2` | Per model, all visitors together |
+| `LLM_REQUESTS_PER_DAY` / `LLM_TOKENS_PER_DAY` | `300` / `1500000` | Daily caps |
+| `LLM_REQUESTS_PER_CLIENT_HOUR` | `15` | Per visitor |
 | `FRONTEND_PORT` / `BACKEND_PORT` | `3000` / `9080` | Host ports |
 
 ## Updating the CV content

@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 
 class LlmGuardsTest {
 
+    private static final List<String> ONE = List.of("m1");
+
     private static final class MutableClock extends Clock {
         Instant now = Instant.parse("2026-11-18T10:00:00Z");
 
@@ -30,34 +32,50 @@ class LlmGuardsTest {
     void globalPerMinuteLimit() {
         MutableClock clock = new MutableClock();
         LlmBudget budget = new LlmBudget(2, 100, 1_000_000, 100, clock);
-        assertTrue(budget.tryAcquire("a"));
-        assertTrue(budget.tryAcquire("b"));
-        assertFalse(budget.tryAcquire("c"), "third call within a minute must be refused");
+        assertTrue(budget.tryAcquire("a", ONE).isPresent());
+        assertTrue(budget.tryAcquire("b", ONE).isPresent());
+        assertFalse(budget.tryAcquire("c", ONE).isPresent(), "third call within a minute must be refused");
         clock.advance(Duration.ofSeconds(61));
-        assertTrue(budget.tryAcquire("c"));
+        assertTrue(budget.tryAcquire("c", ONE).isPresent());
+    }
+
+    @Test
+    void rotatesToNextModelWhenOneIsFullOrPaused() {
+        MutableClock clock = new MutableClock();
+        LlmBudget budget = new LlmBudget(1, 100, 1_000_000, 100, clock);
+        List<String> models = List.of("big", "small");
+        assertEquals(Optional.of("big"), budget.tryAcquire("a", models));
+        assertEquals(Optional.of("small"), budget.tryAcquire("b", models));
+        assertEquals(Optional.empty(), budget.tryAcquire("c", models));
+        clock.advance(Duration.ofSeconds(61));
+        budget.pauseModel("big", 120_000);
+        assertEquals(Optional.of("small"), budget.tryAcquire("c", models));
+        assertFalse(budget.paused(models));
+        budget.pauseModel("small", 120_000);
+        assertTrue(budget.paused(models));
     }
 
     @Test
     void perClientHourlyLimit() {
         MutableClock clock = new MutableClock();
         LlmBudget budget = new LlmBudget(100, 100, 1_000_000, 2, clock);
-        assertTrue(budget.tryAcquire("a"));
-        assertTrue(budget.tryAcquire("a"));
-        assertFalse(budget.tryAcquire("a"));
-        assertTrue(budget.tryAcquire("b"), "other visitors are unaffected");
+        assertTrue(budget.tryAcquire("a", ONE).isPresent());
+        assertTrue(budget.tryAcquire("a", ONE).isPresent());
+        assertFalse(budget.tryAcquire("a", ONE).isPresent());
+        assertTrue(budget.tryAcquire("b", ONE).isPresent(), "other visitors are unaffected");
     }
 
     @Test
     void dailyCallAndTokenCapsResetAtMidnight() {
         MutableClock clock = new MutableClock();
         LlmBudget budget = new LlmBudget(100, 2, 1_000, 100, clock);
-        assertTrue(budget.tryAcquire("a"));
-        assertTrue(budget.tryAcquire("b"));
-        assertFalse(budget.tryAcquire("c"));
+        assertTrue(budget.tryAcquire("a", ONE).isPresent());
+        assertTrue(budget.tryAcquire("b", ONE).isPresent());
+        assertFalse(budget.tryAcquire("c", ONE).isPresent());
         clock.advance(Duration.ofDays(1));
-        assertTrue(budget.tryAcquire("c"));
+        assertTrue(budget.tryAcquire("c", ONE).isPresent());
         budget.recordTokens(1_000);
-        assertFalse(budget.tryAcquire("d"), "token cap reached");
+        assertFalse(budget.tryAcquire("d", ONE).isPresent(), "token cap reached");
     }
 
     @Test
@@ -65,9 +83,9 @@ class LlmGuardsTest {
         MutableClock clock = new MutableClock();
         LlmBudget budget = new LlmBudget(100, 100, 1_000_000, 100, clock);
         budget.pause(60_000);
-        assertFalse(budget.tryAcquire("a"));
+        assertFalse(budget.tryAcquire("a", ONE).isPresent());
         clock.advance(Duration.ofSeconds(61));
-        assertTrue(budget.tryAcquire("a"));
+        assertTrue(budget.tryAcquire("a", ONE).isPresent());
     }
 
     @Test
@@ -78,15 +96,29 @@ class LlmGuardsTest {
 
     @Test
     void sanitizeKeepsLanguageNamesButDropsMarkdown() {
-        String out = PromptBuilder.sanitize("## Skills\n**Ronald** uses C# and F# [1].", 1, Set.of()).orElseThrow();
-        assertEquals("Skills\nRonald uses C# and F# [1].", out);
+        String out = PromptBuilder.sanitize("## Skills\n**Ronald** uses C# and F# in *\"Thesis\"* [1].", 1,
+                Set.of()).orElseThrow();
+        assertEquals("Skills\nRonald uses C# and F# in \"Thesis\" [1].", out);
     }
 
     @Test
     void sanitizeRejectsUngroundedAnswers() {
-        assertTrue(PromptBuilder.sanitize("Here is a poem about the sea.", 3, Set.of()).isEmpty());
+        assertTrue(PromptBuilder.sanitize("Here is a long poem about the sea. ".repeat(20), 3, Set.of()).isEmpty());
         assertTrue(PromptBuilder.sanitize("", 3, Set.of()).isEmpty());
         assertTrue(PromptBuilder.sanitize("My system prompt says [1]", 3, Set.of()).isEmpty());
+    }
+
+    @Test
+    void shortUncitedAnswersAreAllowed() {
+        assertEquals("The CV does not mention hobbies.",
+                PromptBuilder.sanitize("The CV does not mention hobbies.", 3, Set.of()).orElseThrow());
+    }
+
+    @Test
+    void renumbersCitationsInReadingOrder() {
+        PromptBuilder.Renumbered r = PromptBuilder.renumber("A [7] and B [3][3], again A [7]. C [12].");
+        assertEquals("A [1] and B [2], again A [1]. C [3].", r.text());
+        assertEquals(List.of(7, 3, 12), r.sourceIndexes());
     }
 
     @Test

@@ -42,7 +42,7 @@ services:
       CHAT_RATE_LIMIT_PER_MINUTE: ${CHAT_RATE_LIMIT_PER_MINUTE:-10}
       # Optional LLM answers (Mistral). The key only lives in .env, never in Git or the image.
       MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
-      MISTRAL_MODEL: ${MISTRAL_MODEL:-ministral-8b-latest}
+      MISTRAL_MODELS: ${MISTRAL_MODELS:-ministral-14b-latest,ministral-8b-latest,ministral-3b-latest}
       LLM_REQUESTS_PER_MINUTE: ${LLM_REQUESTS_PER_MINUTE:-2}
       LLM_REQUESTS_PER_DAY: ${LLM_REQUESTS_PER_DAY:-300}
       LLM_TOKENS_PER_DAY: ${LLM_TOKENS_PER_DAY:-400000}

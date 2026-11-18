@@ -39,8 +39,10 @@ public class StatusResource {
                 .add("knowledgeChunks", chunks.count())
                 .add("retrieval", "local TF-IDF embeddings, cosine search in pgvector");
         // Never expose the key; only whether generation is active.
-        builder.add("llm", llm.enabled() ? (llm.budget().paused() ? "paused" : "enabled") : "disabled");
-        llm.model().ifPresent(m -> builder.add("llmModel", m));
+        builder.add("llm", llm.enabled() ? (llm.paused() ? "paused" : "enabled") : "disabled");
+        if (llm.enabled()) {
+            builder.add("llmModels", Json.createArrayBuilder(llm.models()));
+        }
         if (github.lastSuccess() != null) {
             builder.add("githubLastSync", github.lastSuccess().toString());
         }

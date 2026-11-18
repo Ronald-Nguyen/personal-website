@@ -52,16 +52,14 @@ public class MistralClient {
     private final HttpClient http;
     private final URI endpoint;
     private final String apiKey;
-    private final String model;
     private final Duration timeout;
 
-    public MistralClient(String apiBase, String apiKey, String model, Duration timeout) {
+    public MistralClient(String apiBase, String apiKey, Duration timeout) {
         this.endpoint = URI.create(apiBase.replaceAll("/+$", "") + "/v1/chat/completions");
         if (!"https".equals(endpoint.getScheme()) && !"localhost".equals(endpoint.getHost())) {
             throw new IllegalArgumentException("MISTRAL_API_BASE must use https");
         }
         this.apiKey = apiKey;
-        this.model = model;
         this.timeout = timeout;
         this.http = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(5))
@@ -69,11 +67,7 @@ public class MistralClient {
                 .build();
     }
 
-    public String model() {
-        return model;
-    }
-
-    public Completion complete(List<Message> messages, int maxTokens, double temperature) throws LlmException {
+    public Completion complete(String model, List<Message> messages, int maxTokens, double temperature) throws LlmException {
         var messageArray = Json.createArrayBuilder();
         for (Message m : messages) {
             messageArray.add(Json.createObjectBuilder().add("role", m.role()).add("content", m.content()));

@@ -27,7 +27,7 @@ export function About() {
         </p>
         <p>
           This site is a small example of how I like to work: the assistant above is a retrieval pipeline I wrote in
-          Jakarta EE and PostgreSQL, with no external AI service behind it.
+          Jakarta EE and PostgreSQL. A small Mistral model only phrases answers from the sources it retrieves.
         </p>
       </div>
     </Section>

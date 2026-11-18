@@ -44,7 +44,7 @@ class RagPipelineTest {
     }
 
     private static AnswerComposer.Answer ask(String question) {
-        Map<String, Double> features = QueryExpander.expand(Tokenizer.tokenize(question));
+        Map<String, Double> features = RagService.queryFeatures(question);
         float[] q = model.embed(features);
         List<ScoredChunk> hits = new ArrayList<>();
         if (q != null) {
@@ -65,6 +65,50 @@ class RagPipelineTest {
 
     private static String topKey(AnswerComposer.Answer answer) {
         return answer.sources().get(0).chunk().getSourceKey();
+    }
+
+    @Test
+    void germanQuestionsFindEnglishCvContent() {
+        AnswerComposer.Answer langs = ask("Welche Programmiersprachen kann Ronald?");
+        assertTrue(langs.found());
+        assertEquals("cv:skills:programming-languages", topKey(langs));
+        AnswerComposer.Answer intern = ask("Wo hat er sein Praktikum gemacht?");
+        assertTrue(intern.found());
+        assertTrue(intern.text().contains("GECKO"), intern.text());
+        assertTrue(ask("Was studiert er aktuell?").found());
+    }
+
+    @Test
+    void contextContainsWholeCvAndOnlyMatchingReadmes() {
+        List<KnowledgeChunk> all = new ArrayList<>(chunks);
+        KnowledgeChunk summary = new KnowledgeChunk();
+        summary.setSourceType("github");
+        summary.setChunkIndex(0);
+        summary.setContent("Project summary");
+        KnowledgeChunk readme = new KnowledgeChunk();
+        readme.setSourceType("github");
+        readme.setChunkIndex(1);
+        readme.setContent("From the README");
+        KnowledgeChunk otherReadme = new KnowledgeChunk();
+        otherReadme.setSourceType("github");
+        otherReadme.setChunkIndex(2);
+        otherReadme.setContent("Unrelated README");
+        all.addAll(List.of(summary, readme, otherReadme));
+
+        List<ScoredChunk> context = RagService.buildContext(all, List.of(new ScoredChunk(readme, 0.3)));
+        List<KnowledgeChunk> used = context.stream().map(ScoredChunk::chunk).toList();
+        assertTrue(used.containsAll(chunks), "every CV chunk is always included");
+        assertTrue(used.contains(summary));
+        assertTrue(used.contains(readme));
+        assertFalse(used.contains(otherReadme));
+        assertEquals(chunks.get(0), used.get(0), "CV comes first");
+    }
+
+    @Test
+    void questionWithoutSearchableWordsGetsTheProfile() {
+        AnswerComposer.Answer a = ask("who is ronald");
+        assertTrue(a.found());
+        assertEquals("cv:about", topKey(a));
     }
 
     @Test

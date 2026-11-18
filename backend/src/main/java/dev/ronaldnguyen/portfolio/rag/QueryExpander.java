@@ -68,6 +68,48 @@ public final class QueryExpander {
         RAW.put("android", "jetpack compose kotlin");
         RAW.put("semiconductor", "wafers optical inspection confovis");
         RAW.put("teaching", "teaching assistant imperative programming");
+
+        // German questions against the English CV: map common words to its vocabulary.
+        RAW.put("programmiersprache", "programming languages");
+        RAW.put("programmiersprachen", "programming languages");
+        RAW.put("programmieren", "programming languages developer");
+        RAW.put("sprachen", "languages german english programming");
+        RAW.put("kenntnisse", "skills programming frameworks tools");
+        RAW.put("fähigkeiten", "skills programming frameworks tools");
+        RAW.put("technologien", "frameworks programming languages tools");
+        RAW.put("werkzeuge", "tools frameworks");
+        RAW.put("praktikum", "internship developer");
+        RAW.put("werkstudent", "working student developer");
+        RAW.put("arbeit", "work working experience developer job");
+        RAW.put("arbeitet", "working present developer");
+        RAW.put("gearbeitet", "worked working experience developer");
+        RAW.put("beruf", "work developer job experience");
+        RAW.put("firma", "gmbh company working developer");
+        RAW.put("unternehmen", "gmbh company working developer");
+        RAW.put("aktuell", "present working student currently");
+        RAW.put("derzeit", "present working student currently");
+        RAW.put("studium", "university studying degree master bachelor education");
+        RAW.put("studiert", "university studying degree master bachelor");
+        RAW.put("universität", "university education degree");
+        RAW.put("uni", "university education degree");
+        RAW.put("ausbildung", "education university degree abitur");
+        RAW.put("abschluss", "degree bachelor master grade");
+        RAW.put("projekte", "github repository projects");
+        RAW.put("projekt", "github repository project");
+        RAW.put("kontakt", "contact email linkedin github");
+        RAW.put("kontaktieren", "contact email linkedin");
+        RAW.put("erreichen", "contact email linkedin");
+        RAW.put("wohnt", "location based jena germany");
+        RAW.put("wohnort", "location based jena germany");
+        RAW.put("sprechen", "german english native fluent languages");
+        RAW.put("spricht", "german english native fluent languages");
+        RAW.put("datenbank", "database postgresql sql server");
+        RAW.put("datenbanken", "database postgresql sql server");
+        RAW.put("lehre", "teaching assistant tutor");
+        RAW.put("tutor", "teaching assistant");
+        RAW.put("künstliche", "ai llm machine learning");
+        RAW.put("intelligenz", "ai llm machine learning");
+        RAW.put("thema", "thesis title topic");
     }
 
     private static final Map<String, List<String>> EXPANSIONS = new HashMap<>();

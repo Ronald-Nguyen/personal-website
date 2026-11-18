@@ -41,6 +41,8 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   text: string;
   sources?: Source[];
+  generated?: boolean;
+  notice?: string | null;
   error?: boolean;
 }
 
@@ -172,7 +174,14 @@ export default function AskCv() {
       const response = await askQuestion(q, controller.signal);
       setMessages((m) => [
         ...m,
-        { id: `m${nextId.current++}`, role: 'assistant', text: response.answer, sources: response.sources },
+        {
+          id: `m${nextId.current++}`,
+          role: 'assistant',
+          text: response.answer,
+          sources: response.sources,
+          generated: response.generated,
+          notice: response.notice,
+        },
       ]);
     } catch (error) {
       if (controller.signal.aborted) return;
@@ -227,10 +236,20 @@ export default function AskCv() {
                               <Bubble variant="ghost">
                                 <BubbleContent className="flex max-w-[65ch] flex-col gap-2.5 text-[0.9375rem] leading-relaxed">
                                   {m.text.split(/\n{2,}/).map((paragraph, i) => (
-                                    <p key={i}>{withCitations(paragraph, m.sources)}</p>
+                                    <p key={i} className="whitespace-pre-line">
+                                      {withCitations(paragraph, m.sources)}
+                                    </p>
                                   ))}
                                 </BubbleContent>
                               </Bubble>
+                            )}
+                            {!m.error && m.notice && (
+                              <p className="px-1 text-xs text-muted-foreground">{m.notice}</p>
+                            )}
+                            {!m.error && !m.notice && m.sources && m.sources.length > 0 && (
+                              <p className="px-1 text-xs text-muted-foreground">
+                                {m.generated ? 'Written by AI from the sources below' : 'Quoted directly from the sources'}
+                              </p>
                             )}
                             {m.sources && m.sources.length > 0 && <Sources sources={m.sources} />}
                           </MessageContent>
@@ -295,7 +314,7 @@ export default function AskCv() {
             </InputGroupAddon>
           </InputGroup>
           <p id={hintId} className="mt-2 px-1 text-xs leading-relaxed text-muted-foreground">
-            Runs entirely on this server: TF-IDF vectors searched with pgvector, no external AI service.
+            Retrieval runs on this server (TF-IDF vectors in pgvector); a Mistral model phrases the answer from the sources found.
             {input.length > MAX_LENGTH - 100 && (
               <span className="ml-1 tabular-nums">
                 {input.length}/{MAX_LENGTH}

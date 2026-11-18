@@ -80,4 +80,5 @@ export interface ChatResponse {
   sources: Source[];
   found: boolean;
   generated: boolean;
+  notice?: string | null;
 }

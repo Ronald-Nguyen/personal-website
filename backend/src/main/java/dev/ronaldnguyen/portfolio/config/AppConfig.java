@@ -63,15 +63,24 @@ public class AppConfig {
         return Optional.ofNullable(string("MISTRAL_API_KEY", null));
     }
 
-    public String mistralModel() {
-        return string("MISTRAL_MODEL", "ministral-8b-latest");
+    /**
+     * Models in order of preference. Mistral's free tier rate-limits each model
+     * separately, so rotating through several multiplies the capacity.
+     */
+    public List<String> mistralModels() {
+        return Arrays.stream(string("MISTRAL_MODELS",
+                        "ministral-14b-latest,ministral-8b-latest,ministral-3b-latest").split(","))
+                .map(String::trim)
+                .filter(s -> s.matches("[A-Za-z0-9._:-]{1,64}"))
+                .distinct()
+                .toList();
     }
 
     public String mistralApiBase() {
         return string("MISTRAL_API_BASE", "https://api.mistral.ai");
     }
 
-    /** Global (all visitors together) LLM calls per minute; matches the free tier by default. */
+    /** LLM calls per minute per model (all visitors together); matches the free tier by default. */
     public int llmRequestsPerMinute() {
         return Math.max(1, integer("LLM_REQUESTS_PER_MINUTE", 2));
     }
@@ -83,7 +92,7 @@ public class AppConfig {
 
     /** Global LLM tokens (prompt + completion) per UTC day. */
     public int llmTokensPerDay() {
-        return Math.max(1_000, integer("LLM_TOKENS_PER_DAY", 400_000));
+        return Math.max(1_000, integer("LLM_TOKENS_PER_DAY", 1_500_000));
     }
 
     /** LLM calls per visitor per hour, on top of the general chat rate limit. */

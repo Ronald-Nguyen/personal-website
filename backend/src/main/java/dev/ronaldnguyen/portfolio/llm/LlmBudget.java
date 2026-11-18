@@ -6,19 +6,21 @@ import java.time.ZoneOffset;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
- * Server-side spending guard for the LLM. All limits are global or per
- * client and enforced before a call is made, so neither a single visitor
- * nor a crowd can burn through the API quota:
+ * Server-side spending guard for the LLM. All limits are enforced before a
+ * call is made, so neither a single visitor nor a crowd can burn through
+ * the API quota:
  * <ul>
- *   <li>global calls per minute (sliding window) and per UTC day,</li>
- *   <li>global tokens per UTC day,</li>
+ *   <li>calls per minute per model (Mistral's free tier limits each model separately),</li>
+ *   <li>global calls and tokens per UTC day,</li>
  *   <li>calls per client per hour,</li>
- *   <li>a cool-down after 429/5xx and a long pause after 401/403.</li>
+ *   <li>a per-model cool-down after 429/5xx and a global pause after 401.</li>
  * </ul>
- * When any limit is hit the caller falls back to the extractive answer.
+ * When no model is available the caller falls back to the extractive answer.
  */
 public class LlmBudget {
 
@@ -26,21 +28,22 @@ public class LlmBudget {
     private static final long MINUTE_MS = 60_000;
     private static final long HOUR_MS = 60 * MINUTE_MS;
 
-    private final int perMinute;
+    private final int perMinutePerModel;
     private final int perDay;
     private final int tokensPerDay;
     private final int perClientHour;
     private final Clock clock;
 
-    private final Deque<Long> recentCalls = new ArrayDeque<>();
+    private final Map<String, Deque<Long>> modelCalls = new HashMap<>();
+    private final Map<String, Long> modelPausedUntil = new HashMap<>();
     private final Map<String, Deque<Long>> clientCalls = new HashMap<>();
     private LocalDate day;
     private int callsToday;
     private long tokensToday;
     private long pausedUntil;
 
-    public LlmBudget(int perMinute, int perDay, int tokensPerDay, int perClientHour, Clock clock) {
-        this.perMinute = perMinute;
+    public LlmBudget(int perMinutePerModel, int perDay, int tokensPerDay, int perClientHour, Clock clock) {
+        this.perMinutePerModel = perMinutePerModel;
         this.perDay = perDay;
         this.tokensPerDay = tokensPerDay;
         this.perClientHour = perClientHour;
@@ -48,16 +51,15 @@ public class LlmBudget {
         this.day = LocalDate.now(clock.withZone(ZoneOffset.UTC));
     }
 
-    /** Reserves one call for {@code client}; false means: do not call the LLM now. */
-    public synchronized boolean tryAcquire(String client) {
+    /**
+     * Reserves one call for {@code client} on the first model in {@code models}
+     * (in order of preference) that still has capacity. Empty means: do not call now.
+     */
+    public synchronized Optional<String> tryAcquire(String client, List<String> models) {
         long now = clock.millis();
         rollDay();
         if (now < pausedUntil || callsToday >= perDay || tokensToday >= tokensPerDay) {
-            return false;
-        }
-        prune(recentCalls, now - MINUTE_MS);
-        if (recentCalls.size() >= perMinute) {
-            return false;
+            return Optional.empty();
         }
         if (clientCalls.size() > MAX_TRACKED_CLIENTS) {
             clientCalls.values().removeIf(q -> {
@@ -65,18 +67,28 @@ public class LlmBudget {
                 return q.isEmpty();
             });
             if (clientCalls.size() > MAX_TRACKED_CLIENTS) {
-                return false; // under a flood of distinct clients, stop spending instead of forgetting limits
+                return Optional.empty(); // under a flood of distinct clients, stop spending instead of forgetting limits
             }
         }
         Deque<Long> mine = clientCalls.computeIfAbsent(client, k -> new ArrayDeque<>());
         prune(mine, now - HOUR_MS);
         if (mine.size() >= perClientHour) {
-            return false;
+            return Optional.empty();
         }
-        recentCalls.addLast(now);
-        mine.addLast(now);
-        callsToday++;
-        return true;
+        for (String model : models) {
+            if (now < modelPausedUntil.getOrDefault(model, 0L)) {
+                continue;
+            }
+            Deque<Long> calls = modelCalls.computeIfAbsent(model, k -> new ArrayDeque<>());
+            prune(calls, now - MINUTE_MS);
+            if (calls.size() < perMinutePerModel) {
+                calls.addLast(now);
+                mine.addLast(now);
+                callsToday++;
+                return Optional.of(model);
+            }
+        }
+        return Optional.empty();
     }
 
     public synchronized void recordTokens(int tokens) {
@@ -84,13 +96,20 @@ public class LlmBudget {
         tokensToday += Math.max(0, tokens);
     }
 
-    /** Stops all LLM calls for the given duration (rate limited upstream, bad key, outage). */
+    /** Stops calls to one model (rate limited upstream, model not in plan, outage). */
+    public synchronized void pauseModel(String model, long millis) {
+        modelPausedUntil.merge(model, clock.millis() + millis, Math::max);
+    }
+
+    /** Stops all LLM calls (e.g. the API key was rejected). */
     public synchronized void pause(long millis) {
         pausedUntil = Math.max(pausedUntil, clock.millis() + millis);
     }
 
-    public synchronized boolean paused() {
-        return clock.millis() < pausedUntil;
+    /** True when no model can be called right now because of pauses. */
+    public synchronized boolean paused(List<String> models) {
+        long now = clock.millis();
+        return now < pausedUntil || models.stream().allMatch(m -> now < modelPausedUntil.getOrDefault(m, 0L));
     }
 
     public synchronized int callsToday() {
