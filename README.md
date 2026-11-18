@@ -1,6 +1,6 @@
 # personal-website
 
-Personal portfolio of **Ronald Nguyen** with an integrated **"Ask my CV" assistant**. The assistant uses retrieval-augmented generation (RAG): it answers questions about his background, projects and skills, grounded in his CV and his GitHub repositories, with numbered citations.
+Personal portfolio with an integrated **"Ask my CV" assistant**. The assistant uses retrieval-augmented generation (RAG): it answers questions about background, projects and skills, grounded in his CV and GitHub repositories, with numbered citations.
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4 and shadcn/ui (Base UI), served by Nginx.
 - **Backend:** Jakarta EE 10 on Java 21 (JAX-RS, CDI, JSON-B, JPA with Hibernate 6), running on Open Liberty.
