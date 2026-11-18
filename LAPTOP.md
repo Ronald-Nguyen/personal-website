@@ -45,6 +45,18 @@ Achtung: Wenn du direkt auf dem Laptop änderst und danach `./deploy-laptop.sh` 
 - **Docker über SSH:** Der Windows-Anmeldespeicher funktioniert in SSH-Sitzungen nicht. Deshalb nutzt `site.ps1` eine eigene Config unter `C:\Users\ronal\.docker-ssh`, mit einem Helper, der öffentliche Images anonym zieht. Nutze für Docker-Befehle über SSH also immer `site.ps1`.
 - **Aufgabe `DockerDesktopStart`:** Diese geplante Aufgabe startet Docker Desktop in der angemeldeten Windows-Sitzung. `site.ps1` ruft sie automatisch auf, wenn Docker nicht läuft.
 
+## 3a. Öffentlich: https://ronald-nguyen.de (Cloudflare Tunnel)
+
+- Der Compose-Dienst `tunnel` (`cloudflare/cloudflared`) baut eine ausgehende Verbindung zu Cloudflare auf. Dafür sind keine Portfreigaben im Router nötig.
+- Er läuft nur, wenn in der `.env` `COMPOSE_PROFILES=tunnel` und `CLOUDFLARE_TUNNEL_TOKEN=…` stehen. Das Token findest du im Cloudflare-Dashboard unter Tunnels → `laptop` → Overview → Install-Befehl, der Teil nach `--token`.
+- Die Route im Tunnel ist `ronald-nguyen.de → http://frontend:80`. Der DNS-Eintrag ist ein CNAME `@ → 65105438-2f65-4aba-bd7f-e81cbc111385.cfargotunnel.com` (proxied).
+- `www.ronald-nguyen.de` hat eine eigene Tunnel-Route. Die Redirect Rule „www zu Hauptdomain“ leitet mit 301 auf `https://ronald-nguyen.de` weiter, Pfad und Query bleiben erhalten. „Always Use HTTPS“ ist aktiv.
+- Nginx übernimmt die Besucher-IP aus `CF-Connecting-IP`, aber nur aus dem Tunnel-Netz `172.31.250.0/24`.
+
+## 3b. Tailscale
+
+Der Laptop heißt im Tailnet `laptopro` und hat die Adresse `100.82.34.109`. Ist er nicht im Heimnetz, deployst du über Tailscale. Ändere dafür in `~/.ssh/config` den `HostName` auf `100.82.34.109`, oder lege einen zweiten Host-Alias an und nutze `HOST=<alias> ./deploy-laptop.sh`.
+
 ## 4. Fehlerbehebung
 
 | Problem | Lösung |

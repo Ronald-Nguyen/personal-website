@@ -69,6 +69,31 @@ services:
         condition: service_healthy
     ports:
       - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - default
+      - tunnel
+
+  # Cloudflare Tunnel: publishes the site at the public hostname configured in the
+  # Cloudflare dashboard, without opening router ports. Enabled by setting
+  # COMPOSE_PROFILES=tunnel and CLOUDFLARE_TUNNEL_TOKEN in .env.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on:
+      - frontend
+    networks:
+      - tunnel
+
+networks:
+  # Dedicated network: Nginx trusts CF-Connecting-IP only from this subnet.
+  tunnel:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
 
 volumes:
   pgdata:
