@@ -13,6 +13,12 @@ tar czf - \
   --exclude=./backend/target --exclude=./.git --exclude=./.impeccable --exclude=./.env \
   . | ssh "$HOST" "tar.exe xzf - -C $REMOTE_DIR"
 
+# .env (secrets such as MISTRAL_API_KEY) is not part of the tarball; copy it separately.
+if [ -f .env ]; then
+  echo "==> Übertrage .env"
+  scp -q .env "$HOST:$REMOTE_DIR/.env"
+fi
+
 echo "==> Baue und starte die Container"
 ssh "$HOST" "powershell -ExecutionPolicy Bypass -File $REMOTE_DIR/site.ps1 up"
 

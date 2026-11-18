@@ -1,6 +1,7 @@
 package dev.ronaldnguyen.portfolio.web;
 
 import dev.ronaldnguyen.portfolio.github.GithubService;
+import dev.ronaldnguyen.portfolio.llm.LlmService;
 import dev.ronaldnguyen.portfolio.repository.ChunkRepository;
 import dev.ronaldnguyen.portfolio.seed.KnowledgeSeeder;
 import jakarta.enterprise.context.RequestScoped;
@@ -28,12 +29,18 @@ public class StatusResource {
     @Inject
     GithubService github;
 
+    @Inject
+    LlmService llm;
+
     @GET
     public JsonObject status() {
         JsonObjectBuilder builder = Json.createObjectBuilder()
                 .add("ready", seeder.isReady())
                 .add("knowledgeChunks", chunks.count())
                 .add("retrieval", "local TF-IDF embeddings, cosine search in pgvector");
+        // Never expose the key; only whether generation is active.
+        builder.add("llm", llm.enabled() ? (llm.budget().paused() ? "paused" : "enabled") : "disabled");
+        llm.model().ifPresent(m -> builder.add("llmModel", m));
         if (github.lastSuccess() != null) {
             builder.add("githubLastSync", github.lastSuccess().toString());
         }

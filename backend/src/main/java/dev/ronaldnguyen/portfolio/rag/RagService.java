@@ -2,6 +2,7 @@ package dev.ronaldnguyen.portfolio.rag;
 
 import dev.ronaldnguyen.portfolio.dto.ChatResponse;
 import dev.ronaldnguyen.portfolio.dto.SourceDto;
+import dev.ronaldnguyen.portfolio.llm.LlmService;
 import dev.ronaldnguyen.portfolio.repository.ChunkRepository;
 import dev.ronaldnguyen.portfolio.seed.ProfileService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,7 +28,16 @@ public class RagService {
     @Inject
     ProfileService profile;
 
-    public ChatResponse ask(String question) {
+    @Inject
+    LlmService llm;
+
+    /**
+     * Answers from the knowledge base. Only when retrieval found relevant
+     * sources is the LLM asked to phrase the answer from exactly those
+     * sources; otherwise (or if the LLM is unavailable) the extractive
+     * answer is returned.
+     */
+    public ChatResponse ask(String question, String clientId) {
         LocalEmbedder model = index.model()
                 .orElseThrow(() -> new ServiceUnavailableException("The knowledge base is still being indexed."));
 
@@ -43,7 +53,12 @@ public class RagService {
                     snippet(hit.chunk().getContent()), Math.round(hit.score() * 1000) / 1000.0,
                     hit.chunk().getUrl()));
         }
-        return new ChatResponse(answer.text(), sources, answer.found());
+        if (!answer.found()) {
+            return new ChatResponse(answer.text(), sources, false, false);
+        }
+        return llm.answer(question, answer.sources(), clientId, profile.email())
+                .map(text -> new ChatResponse(text, sources, true, true))
+                .orElseGet(() -> new ChatResponse(answer.text(), sources, true, false));
     }
 
     private static String snippet(String content) {

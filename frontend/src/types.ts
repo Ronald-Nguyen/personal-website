@@ -79,4 +79,5 @@ export interface ChatResponse {
   answer: string;
   sources: Source[];
   found: boolean;
+  generated: boolean;
 }

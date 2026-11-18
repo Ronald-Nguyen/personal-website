@@ -58,6 +58,47 @@ public class AppConfig {
         return Math.max(1, integer("CHAT_RATE_LIMIT_PER_MINUTE", 20));
     }
 
+    /** Mistral API key; when absent the chat answers extractively without an LLM. */
+    public Optional<String> mistralApiKey() {
+        return Optional.ofNullable(string("MISTRAL_API_KEY", null));
+    }
+
+    public String mistralModel() {
+        return string("MISTRAL_MODEL", "ministral-8b-latest");
+    }
+
+    public String mistralApiBase() {
+        return string("MISTRAL_API_BASE", "https://api.mistral.ai");
+    }
+
+    /** Global (all visitors together) LLM calls per minute; matches the free tier by default. */
+    public int llmRequestsPerMinute() {
+        return Math.max(1, integer("LLM_REQUESTS_PER_MINUTE", 2));
+    }
+
+    /** Global LLM calls per UTC day; afterwards the chat silently falls back to extractive answers. */
+    public int llmRequestsPerDay() {
+        return Math.max(1, integer("LLM_REQUESTS_PER_DAY", 300));
+    }
+
+    /** Global LLM tokens (prompt + completion) per UTC day. */
+    public int llmTokensPerDay() {
+        return Math.max(1_000, integer("LLM_TOKENS_PER_DAY", 400_000));
+    }
+
+    /** LLM calls per visitor per hour, on top of the general chat rate limit. */
+    public int llmRequestsPerClientHour() {
+        return Math.max(1, integer("LLM_REQUESTS_PER_CLIENT_HOUR", 15));
+    }
+
+    /**
+     * Whether X-Forwarded-For is trusted for client identification. Only safe
+     * when the backend is reachable exclusively through the Nginx proxy.
+     */
+    public boolean trustForwardedFor() {
+        return Boolean.parseBoolean(string("TRUST_FORWARDED_FOR", "true"));
+    }
+
     public static List<String> corsAllowedOrigins() {
         return Arrays.stream(string("CORS_ALLOWED_ORIGINS",
                         "http://localhost:5173,http://localhost:3000").split(","))

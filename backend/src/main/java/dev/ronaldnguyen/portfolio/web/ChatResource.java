@@ -1,5 +1,6 @@
 package dev.ronaldnguyen.portfolio.web;
 
+import dev.ronaldnguyen.portfolio.config.AppConfig;
 import dev.ronaldnguyen.portfolio.dto.ChatRequest;
 import dev.ronaldnguyen.portfolio.dto.ChatResponse;
 import dev.ronaldnguyen.portfolio.dto.ErrorDto;
@@ -29,12 +30,16 @@ public class ChatResource {
     @Inject
     RateLimiter rateLimiter;
 
+    @Inject
+    AppConfig config;
+
     @Context
     HttpServletRequest servletRequest;
 
     @POST
     public Response ask(ChatRequest request) {
-        String question = request == null || request.getQuestion() == null ? "" : request.getQuestion().strip();
+        String question = request == null || request.getQuestion() == null ? "" : request.getQuestion()
+                .replaceAll("[\\p{Cc}&&[^\\n\\t]]", "").strip();
         if (question.isEmpty()) {
             return error(Response.Status.BAD_REQUEST, "Please enter a question.");
         }
@@ -45,14 +50,24 @@ public class ChatResource {
         if (!rateLimiter.tryAcquire(clientId())) {
             return error(Response.Status.TOO_MANY_REQUESTS, "Too many questions — please wait a moment.");
         }
-        ChatResponse response = rag.ask(question);
+        ChatResponse response = rag.ask(question, clientId());
         return Response.ok(response).build();
     }
 
+    /**
+     * Nginx overwrites X-Forwarded-For with the real peer address, so the header
+     * is only trusted when configured (the backend port must then not be
+     * reachable from outside, see docker-compose.yml).
+     */
     private String clientId() {
-        String forwarded = servletRequest.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        if (config.trustForwardedFor()) {
+            String forwarded = servletRequest.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                String last = forwarded.substring(forwarded.lastIndexOf(',') + 1).trim();
+                if (!last.isEmpty() && last.length() <= 64) {
+                    return last;
+                }
+            }
         }
         return servletRequest.getRemoteAddr();
     }

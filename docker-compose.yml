@@ -39,9 +39,19 @@ services:
       GITHUB_REPO_LIMIT: ${GITHUB_REPO_LIMIT:-10}
       GITHUB_REFRESH_HOURS: ${GITHUB_REFRESH_HOURS:-6}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost:3000}
-      CHAT_RATE_LIMIT_PER_MINUTE: ${CHAT_RATE_LIMIT_PER_MINUTE:-20}
+      CHAT_RATE_LIMIT_PER_MINUTE: ${CHAT_RATE_LIMIT_PER_MINUTE:-10}
+      # Optional LLM answers (Mistral). The key only lives in .env, never in Git or the image.
+      MISTRAL_API_KEY: ${MISTRAL_API_KEY:-}
+      MISTRAL_MODEL: ${MISTRAL_MODEL:-ministral-8b-latest}
+      LLM_REQUESTS_PER_MINUTE: ${LLM_REQUESTS_PER_MINUTE:-2}
+      LLM_REQUESTS_PER_DAY: ${LLM_REQUESTS_PER_DAY:-300}
+      LLM_TOKENS_PER_DAY: ${LLM_TOKENS_PER_DAY:-400000}
+      LLM_REQUESTS_PER_CLIENT_HOUR: ${LLM_REQUESTS_PER_CLIENT_HOUR:-15}
+      TRUST_FORWARDED_FOR: "true"
+    # Bound to localhost only: from outside, the API is reachable solely through
+    # the Nginx proxy, which sets X-Forwarded-For (so it cannot be spoofed).
     ports:
-      - "${BACKEND_PORT:-9080}:9080"
+      - "127.0.0.1:${BACKEND_PORT:-9080}:9080"
     healthcheck:
       test: ["CMD", "/opt/healthcheck.sh"]
       interval: 10s
