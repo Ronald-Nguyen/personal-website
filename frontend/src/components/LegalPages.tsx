@@ -37,6 +37,12 @@ function Address() {
     <address className="not-italic">
       {profile.name}
       <br />
+      {legal.careOf && (
+        <>
+          c/o {legal.careOf}
+          <br />
+        </>
+      )}
       {legal.street}
       <br />
       {legal.postalCode} {legal.city}
@@ -162,7 +168,9 @@ function Datenschutz() {
         pro Besucher zu begrenzen (Missbrauchsschutz); sie wird nicht dauerhaft gespeichert und spätestens nach einer
         Stunde verworfen. Fragen und Antworten werden zur Entlastung des Dienstes bis zu sechs Stunden im
         Arbeitsspeicher zwischengespeichert, ohne Bezug zu Ihrer Person, und nicht protokolliert. Mistral speichert
-        API-Anfragen nach eigenen Angaben für bis zu 30 Tage zur Missbrauchserkennung.
+        API-Anfragen nach eigenen Angaben für bis zu 30 Tage zur Missbrauchserkennung. Der Nutzung meiner
+        API-Anfragen zum Training der Modelle von Mistral habe ich in den Datenschutzeinstellungen meines
+        Mistral-Kontos widersprochen.
       </p>
       <p className="mt-3">
         <strong className="font-semibold text-foreground">Bitte geben Sie in Fragen keine personenbezogenen Daten
