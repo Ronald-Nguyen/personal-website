@@ -5,7 +5,7 @@
   "email": "ronaldnguyen314@gmail.com",
   "github": "https://github.com/Ronald-Nguyen",
   "githubUsername": "Ronald-Nguyen",
-  "linkedin": "https://linkedin.com/in/ronald-nguyen",
+  "linkedin": "https://linkedin.com/in/ronald-nguyen-",
   "about": "Master's student in Applied Computer Science in Jena, Germany, specializing in AI-assisted software engineering and full-stack enterprise applications. Experienced in building end-to-end applications (Angular/React, C#/ASP.NET, Java) and designing automated LLM evaluation pipelines.",
   "education": [
     {
@@ -29,6 +29,7 @@
         "title": "Empirical Evaluation of LLM-Generated Code Transformations in Real-World Software Systems of Varying Complexity",
         "titleOriginal": "Empirische Evaluation von LLM-generierten Code-Transformationen in realen Software-Systemen unterschiedlicher Komplexität",
         "grade": "1.0",
+        "repo": "bachelor-thesis-llm-complexity",
         "url": "https://se.informatik.uni-rostock.de/storages/uni-rostock/Alle_IEF/Inf_SE/Bachelorarbeit_ronald_nguyen_222200308-1.pdf",
         "listingUrl": "https://se.informatik.uni-rostock.de/lehre/studentische-arbeiten/abgeschlossene-arbeiten/"
       }

@@ -11,8 +11,13 @@ import type { Project } from '@/types';
 import { languageColor } from './languageColors';
 import Section from './Section';
 
+const thesisByRepo = new Map(
+  profile.education.flatMap((edu) => (edu.thesis?.repo ? [[edu.thesis.repo, edu.thesis] as const] : [])),
+);
+
 function ProjectRow({ project }: { project: Project }) {
   const updated = formatMonthYear(project.pushedAt);
+  const thesis = thesisByRepo.get(project.name);
 
   return (
     <li className="group relative -mx-4 rounded-xl px-4 py-4 transition-colors hover:bg-muted/70 has-[a:focus-visible]:bg-muted/70">
@@ -63,7 +68,29 @@ function ProjectRow({ project }: { project: Project }) {
         )}
         {project.fork && <span>Fork</span>}
         {updated && <span>Updated {updated}</span>}
-        {project.homepage && (
+        {thesis?.url && (
+          <a
+            href={thesis.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 inline-flex items-center gap-0.5 rounded-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            Read the full thesis (PDF)
+            <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+          </a>
+        )}
+        {thesis?.listingUrl && (
+          <a
+            href={thesis.listingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="relative z-10 inline-flex items-center gap-0.5 rounded-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Published by the Software Engineering chair, University of Rostock
+            <ArrowUpRightIcon aria-hidden="true" className="size-3.5" />
+          </a>
+        )}
+        {!thesis && project.homepage && (
           <a
             href={project.homepage}
             target="_blank"
