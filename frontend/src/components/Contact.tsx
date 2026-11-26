@@ -2,6 +2,7 @@ import { ArrowUpRightIcon, MailIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { profile } from '@/profile';
 import { GitHubIcon, LinkedInIcon } from './icons';
+import { LegalLinks } from './LegalPages';
 import Section from './Section';
 
 export function Contact() {
@@ -56,6 +57,7 @@ export function Footer() {
         Built with React, Tailwind CSS and shadcn/ui on a Jakarta EE and PostgreSQL backend. Set in Geist.{' '}
         <span className="tabular-nums">© {new Date().getFullYear()}</span> {profile.name}.
       </p>
+      <LegalLinks className="mt-3" />
     </footer>
   );
 }

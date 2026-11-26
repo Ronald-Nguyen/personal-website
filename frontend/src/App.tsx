@@ -3,10 +3,16 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import AskCv from './components/AskCv';
 import { Contact, Footer } from './components/Contact';
 import { About, Education, Experience, Skills } from './components/CvSections';
+import LegalPageView, { legalPageFor } from './components/LegalPages';
 import Projects from './components/Projects';
 import Sidebar from './components/Sidebar';
 
 export default function App() {
+  const legalPage = legalPageFor(window.location.pathname);
+  return legalPage ? <LegalPageView page={legalPage} /> : <Portfolio />;
+}
+
+function Portfolio() {
   // The browser tries the initial #hash jump before React has rendered the sections.
   useEffect(() => {
     const id = decodeURIComponent(window.location.hash.slice(1));

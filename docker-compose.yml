@@ -71,6 +71,12 @@ services:
         condition: service_healthy
     ports:
       - "${FRONTEND_PORT:-3000}:80"
+    # Bounded, rotating access logs (see the privacy policy at /datenschutz).
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - default
       - tunnel
