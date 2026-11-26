@@ -1,5 +1,5 @@
 import { ArrowLeftIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { legal } from '@/legal';
 import { profile } from '@/profile';
 
@@ -139,11 +139,13 @@ function Datenschutz() {
         Die Verbindung zur Website läuft über das Netzwerk der Cloudflare, Inc., 101 Townsend St., San Francisco, CA
         94107, USA („Cloudflare Tunnel“). Cloudflare nimmt dabei alle Anfragen entgegen, leitet sie an meinen Server
         weiter und schützt die Seite vor Angriffen. Dabei verarbeitet Cloudflare insbesondere Ihre IP-Adresse und die
-        oben genannten Verbindungsdaten. Cloudflare kann zur Abwehr automatisierter Angriffe technisch notwendige
-        Cookies setzen. Mit Cloudflare besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO). Cloudflare ist
+        oben genannten Verbindungsdaten. Cloudflare kann zur Abwehr automatisierter Angriffe (Bot-Erkennung) ein
+        technisch notwendiges Cookie („__cf_bm“, Laufzeit 30 Minuten) setzen; dafür ist nach § 25 Abs. 2 Nr. 2 TDDDG
+        keine Einwilligung erforderlich. Mit Cloudflare besteht ein Vertrag zur Auftragsverarbeitung (Art. 28 DSGVO). Cloudflare ist
         unter dem EU-US Data Privacy Framework zertifiziert (Angemessenheitsbeschluss, Art. 45 DSGVO); ergänzend gelten
         Standardvertragsklauseln. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO (sichere und performante
-        Bereitstellung). Weitere Informationen:{' '}
+        Bereitstellung). Cloudflare speichert Verbindungsdaten nach eigenen Angaben nur so lange, wie es für
+        Sicherheit und Betrieb erforderlich ist. Weitere Informationen:{' '}
         <Ext href="https://www.cloudflare.com/privacypolicy/">Datenschutzerklärung von Cloudflare</Ext>.
       </p>
 
@@ -201,7 +203,9 @@ function Datenschutz() {
         Anfrage zu beantworten. Rechtsgrundlage ist Art. 6 Abs. 1 lit. b DSGVO, sofern es um eine mögliche
         Zusammenarbeit oder ein Beschäftigungsverhältnis geht, sonst Art. 6 Abs. 1 lit. f DSGVO. Die E-Mails werden
         gelöscht, sobald sie für die Bearbeitung nicht mehr erforderlich sind und keine gesetzlichen
-        Aufbewahrungspflichten bestehen. Mein E-Mail-Postfach wird von Google (Gmail) bereitgestellt.
+        Aufbewahrungspflichten bestehen. Mein E-Mail-Postfach wird von der Google Ireland Limited, Gordon House,
+        Barrow Street, Dublin 4, Irland (Gmail) bereitgestellt; dabei ist eine Übermittlung an die Google LLC in den USA
+        möglich. Google ist unter dem EU-US Data Privacy Framework zertifiziert (Art. 45 DSGVO).
       </p>
 
       <H2>8. Externe Links</H2>
@@ -210,7 +214,23 @@ function Datenschutz() {
         werden Daten an den jeweiligen Anbieter übertragen; dort gilt dessen Datenschutzerklärung.
       </p>
 
-      <H2>9. Ihre Rechte</H2>
+      <H2>9. Speicherdauer im Überblick</H2>
+      <ul className="list-disc space-y-1 pl-5">
+        <li>Server-Logdateien (mit gekürzter IP): größenbegrenzt, werden fortlaufend überschrieben</li>
+        <li>IP-Adresse für die Anfragebegrenzung des Assistenten: nur im Arbeitsspeicher, höchstens 1 Stunde</li>
+        <li>Zwischengespeicherte Fragen und Antworten: nur im Arbeitsspeicher, höchstens 6 Stunden</li>
+        <li>Bei Mistral AI: bis zu 30 Tage (Missbrauchserkennung)</li>
+        <li>Theme-Einstellung im Browser: bis Sie sie löschen</li>
+        <li>E-Mails: bis die Anfrage erledigt ist, sofern keine Aufbewahrungspflicht besteht</li>
+      </ul>
+
+      <H2>10. SSL-/TLS-Verschlüsselung</H2>
+      <p>
+        Diese Seite nutzt aus Sicherheitsgründen eine TLS-Verschlüsselung (erkennbar an „https://“ in der
+        Adresszeile). Daten, die Sie an diese Website übermitteln, können so nicht von Dritten mitgelesen werden.
+      </p>
+
+      <H2>11. Ihre Rechte</H2>
       <p>Sie haben gegenüber mir folgende Rechte hinsichtlich der Sie betreffenden personenbezogenen Daten:</p>
       <ul className="mt-2 list-disc space-y-1 pl-5">
         <li>Auskunft (Art. 15 DSGVO)</li>
@@ -218,11 +238,18 @@ function Datenschutz() {
         <li>Löschung (Art. 17 DSGVO)</li>
         <li>Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
         <li>Datenübertragbarkeit (Art. 20 DSGVO)</li>
-        <li>
-          <strong className="font-semibold text-foreground">Widerspruch</strong> gegen Verarbeitungen auf Grundlage
-          von Art. 6 Abs. 1 lit. f DSGVO aus Gründen, die sich aus Ihrer besonderen Situation ergeben (Art. 21 DSGVO)
-        </li>
       </ul>
+      <div className="mt-5 rounded-lg border border-foreground/30 p-4 text-foreground">
+        <p className="font-semibold">Widerspruchsrecht nach Art. 21 DSGVO</p>
+        <p className="mt-2">
+          Soweit ich Ihre Daten auf Grundlage von Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse) verarbeite,
+          haben Sie das Recht, aus Gründen, die sich aus Ihrer besonderen Situation ergeben, jederzeit Widerspruch
+          gegen diese Verarbeitung einzulegen. Ich verarbeite Ihre Daten dann nicht mehr, es sei denn, ich kann
+          zwingende schutzwürdige Gründe nachweisen, die Ihre Interessen, Rechte und Freiheiten überwiegen, oder die
+          Verarbeitung dient der Geltendmachung, Ausübung oder Verteidigung von Rechtsansprüchen. Ein formloser
+          Widerspruch per E-Mail genügt.
+        </p>
+      </div>
       <p className="mt-3">
         Außerdem haben Sie das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren (Art. 77 DSGVO),
         etwa beim{' '}
@@ -241,6 +268,16 @@ function Datenschutz() {
 }
 
 export default function LegalPageView({ page }: { page: LegalPage }) {
+  // Own title per page; keep the postal address out of search results.
+  useEffect(() => {
+    document.title = `${page === 'impressum' ? 'Impressum' : 'Datenschutzerklärung'} – ${profile.name}`;
+    const robots = document.createElement('meta');
+    robots.name = 'robots';
+    robots.content = 'noindex, follow';
+    document.head.appendChild(robots);
+    return () => robots.remove();
+  }, [page]);
+
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-6 py-14 sm:px-10 sm:py-20">
       <a
