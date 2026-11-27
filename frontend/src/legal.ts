@@ -1,5 +1,9 @@
 /**
- * Details for the Impressum (§ 5 DDG) and the privacy policy (Art. 13 GDPR).
+ * Details for the Impressum (§ 18 Abs. 1 MStV) and the privacy policy (Art. 13 GDPR).
+ *
+ * The site is a non-commercial portfolio, so § 5 DDG does not apply. If you
+ * ever offer paid services (freelancing) or show ads, switch the Impressum back
+ * to § 5 DDG.
  *
  * Kept out of content/profile.json on purpose: that file is indexed into the
  * "Ask my CV" knowledge base, and the postal address should not be quoted by

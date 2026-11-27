@@ -73,16 +73,20 @@ function Impressum() {
   return (
     <>
       <h1 className="text-3xl font-semibold tracking-[-0.03em]">Impressum</h1>
-      <p className="mt-2 text-sm">Legal notice pursuant to § 5 DDG (German Digital Services Act).</p>
+      <p className="mt-2 text-sm">
+        Legal notice pursuant to § 18 (1) of the German Interstate Media Treaty (MStV).
+      </p>
 
-      <H2>Angaben gemäß § 5 DDG</H2>
+      <H2>Angaben gemäß § 18 Abs. 1 MStV</H2>
       <Address />
 
       <H2>Kontakt</H2>
       <Contact />
 
-      <H2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</H2>
-      <Address />
+      <p className="mt-3">
+        Diese Website ist ein privates, nicht-kommerzielles Portfolio. Es werden keine Waren oder Dienstleistungen
+        gegen Entgelt angeboten und keine Werbung geschaltet.
+      </p>
 
       <H2>Haftung für Inhalte</H2>
       <p>

@@ -9,7 +9,7 @@ export function Contact() {
   return (
     <Section id="contact" title="Contact">
       <p className="max-w-[34ch] text-2xl leading-snug font-medium tracking-[-0.02em] text-balance">
-        Happy to talk about full-stack work and AI-assisted software engineering.
+        Always happy to talk about full-stack development, AI-assisted software engineering and job opportunities.
       </p>
       <p className="mt-3 max-w-[65ch] leading-relaxed text-muted-foreground">
         The quickest way to reach me is email:{' '}
