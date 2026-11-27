@@ -315,6 +315,11 @@ export default function AskCv() {
           </InputGroup>
           <p id={hintId} className="mt-2 px-1 text-xs leading-relaxed text-muted-foreground">
             Retrieval runs on this server (TF-IDF vectors in pgvector); a Mistral model phrases the answer from the sources found.
+            {' '}You are talking to an AI: answers can be wrong. Please don&apos;t enter personal data; your question is sent to
+            Mistral AI (Paris).{' '}
+            <a href="/datenschutz" className="underline underline-offset-2 hover:text-foreground">
+              Privacy
+            </a>
             {input.length > MAX_LENGTH - 100 && (
               <span className="ml-1 tabular-nums">
                 {input.length}/{MAX_LENGTH}
